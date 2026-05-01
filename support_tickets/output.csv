@@ -80,9 +80,9 @@ You can extend inactivity timeouts through your company's security settings:
 4. Scroll to the ""Timeout for Inactive Sessions"" section
 5. Enable timeout for inactive sessions and set a longer limit (you can set anywhere from 30 minutes to 24 hours)
 
-The default timeout is 24 hours if no custom limit is set. Setting a longer timeout should prevent interviewers from being considered ""inactive"" during extended screen sharing sessions, which will keep candidates from being automatically moved to the lobby.
+The default timeout is 24 hours if no custom limit is set. For your use case with extended screen sharing sessions, consider setting a longer timeout period to prevent interruptions during collaborative interview activities.
 
-This should resolve the issue where candidates are being sent back to the lobby after 20 minutes during screen sharing portions of interviews.",interviews,replied,product_issue,Answered from 'Enhancing your Account Security on Hackerrank for Work' (data/hackerrank/settings/company-level-admin-settings/7425207053-enhancing-your-account-security-on-hackerrank-for-work.md). Interview inactivity and lobby behavior are answerable from interview docs.
+This should resolve the issue of candidates being unexpectedly moved to the lobby during screen sharing portions of your interviews.",interviews,replied,product_issue,Answered from 'Enhancing your Account Security on Hackerrank for Work' (data/hackerrank/settings/company-level-admin-settings/7425207053-enhancing-your-account-security-on-hackerrank-for-work.md). Interview inactivity and lobby behavior are answerable from interview docs.
 "it’s not working, help",Help needed,None,This issue requires assistance from our support team. I've escalated your ticket so a specialist can help you directly.,,escalated,bug,"The user reports that something is not working without enough product or error context. The corpus cannot diagnose an unspecified issue, so a human needs to gather details."
 "Hello! I am trying to remove an interviewer from the platform. I am not seeing this as an option when I select the three dots next to their name. 
 Can you let me know how to do this?",How to Remove a User,HackerRank,"To remove an interviewer from your team, you'll need to use the Teams Management section. Here's how:
