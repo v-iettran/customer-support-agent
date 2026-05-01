@@ -67,7 +67,7 @@ def invalid_response(ticket: Ticket) -> tuple[str, str]:
 
 
 def escalation_response(reason: str | None = None) -> tuple[str, str]:
-    reason_text = reason.strip() if reason else "this issue requires specialist support"
+    reason_text = reason.strip().rstrip(".") if reason else "this issue requires specialist support"
     return (
         "This issue requires assistance from our support team. I've escalated your ticket so a specialist can help you directly.",
         f"Escalated because {reason_text}.",

@@ -20,6 +20,25 @@ from utils import (
 )
 
 
+def build_replied_justification(classification, chunks) -> str:
+    top = chunks[0] if chunks else None
+    if not top:
+        return classification.reasoning or "Answered using relevant support documentation from the local corpus."
+    try:
+        rel_path = Path(top.file_path).resolve().relative_to(repo_root())
+    except ValueError:
+        rel_path = Path(top.file_path)
+    return f"Answered from '{top.title}' ({rel_path}). {classification.reasoning}"
+
+
+def build_escalation_justification(classification, safety=None) -> str:
+    base = (classification.reasoning or "This issue requires specialist support.").strip().rstrip(".")
+    if safety is None:
+        return f"{base}."
+    notes = (safety.revision_notes or "review found this should not be answered automatically").strip().rstrip(".")
+    return f"{base}. Safety review: {notes}."
+
+
 def process_ticket(ticket: Ticket, index: CorpusIndex) -> OutputRow:
     classification = classify_ticket(ticket)
 
@@ -28,15 +47,16 @@ def process_ticket(ticket: Ticket, index: CorpusIndex) -> OutputRow:
         return make_output_row(ticket, classification, response, "replied", justification)
 
     if classification.status_hint == "escalated":
-        response, justification = escalation_response(classification.reasoning)
+        response, _ = escalation_response(classification.reasoning)
+        justification = build_escalation_justification(classification)
         return make_output_row(ticket, classification, response, "escalated", justification)
 
-    draft_response, _chunks = retrieve_and_respond(index, ticket, classification)
+    draft_response, chunks = retrieve_and_respond(index, ticket, classification)
     safety = review_response(ticket, classification, draft_response)
     if safety.final_status == "escalated":
-        justification = f"Escalated after safety review: {safety.revision_notes}."
+        justification = build_escalation_justification(classification, safety)
     else:
-        justification = classification.reasoning or "Answered using relevant support documentation from the local corpus."
+        justification = build_replied_justification(classification, chunks)
     return make_output_row(ticket, classification, safety.revised_response, safety.final_status, justification)
 
 

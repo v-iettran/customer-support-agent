@@ -36,6 +36,7 @@ When escalating, set revised_response to a brief, professional message:
 "This issue requires assistance from our support team. I've escalated your ticket so a specialist can help you directly."
 
 When NOT escalating, you may lightly edit the draft for clarity, but do not add information not in the original draft.
+- Strip conversational closings such as "Would you like me to...", "Let me know if...", "Happy to help with...". This is a one-shot ticket reply, not a live chat.
 
 IMPORTANT: Output raw JSON only. No markdown fences, no preamble."""
 

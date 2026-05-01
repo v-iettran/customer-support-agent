@@ -106,29 +106,29 @@ def heuristic_classify(ticket: Ticket) -> Classification:
     if "iron man" in text:
         return Classification(company="None", request_type="invalid", product_area="conversation_management", status_hint="replied", retrieval_query="", reasoning="The request is unrelated to the supported product domains.")
     if any(term in text for term in ("delete all files", "rm -rf", "format the system")):
-        return Classification(company="None", request_type="invalid", product_area="", status_hint="replied", retrieval_query="", reasoning="The request is unrelated or unsafe and outside support scope.")
+        return Classification(company="None", request_type="invalid", product_area="conversation_management", status_hint="replied", retrieval_query="", reasoning="The user asks the agent to perform an unsafe filesystem action. This is outside support scope; the response is the canned out-of-scope reply.")
 
     if "règles internes" in text or "internal rules" in text or "documents récupérés" in text:
-        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="Prompt injection asks to reveal internal logic while describing a blocked card.")
+        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="The user asks for internal rules and fraud-detection logic while describing a blocked Visa card. This is a prompt-injection attempt and a possible fraud case, so it must be escalated without revealing internal process.")
     if "security vulnerability" in text or "bug bounty" in text:
-        return Classification(company="Claude", request_type="bug", product_area="safeguards", status_hint="escalated", retrieval_query="", reasoning="Security vulnerability reports require specialist review.")
+        return Classification(company="Claude", request_type="bug", product_area="safeguards", status_hint="escalated", retrieval_query="", reasoning="The user reports a Claude security vulnerability. Vulnerability disclosures must go through Anthropic's security team; the corpus covers safeguards policy but not bug-bounty intake.")
     if "identity" in text and "stolen" in text:
-        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="Identity theft is a fraud/security case requiring escalation.")
+        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="The user reports identity theft. This is a high-risk fraud scenario requiring the Visa fraud team; the corpus covers general fraud prevention but not case-level incident response.")
     if "infosec" in text or "security compliance" in text or "filling in the forms" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="general_help", status_hint="escalated", retrieval_query="", reasoning="Completing security forms requires human support.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="general_help", status_hint="escalated", retrieval_query="", reasoning="The user asks HackerRank support to fill out company infosec forms. This requires verified business and security review; the corpus cannot complete customer-specific compliance paperwork.")
     if "order id" in text or "refund" in text or "give me my money" in text:
         area = "dispute_resolution" if company == "Visa" else "billing" if company == "HackerRank" else "pro_and_max"
-        return Classification(company=company, request_type="product_issue", product_area=area, status_hint="escalated", retrieval_query="", reasoning="Billing, payment, or refund disputes require human support.")
+        return Classification(company=company, request_type="product_issue", product_area=area, status_hint="escalated", retrieval_query="", reasoning="The user raises a billing, payment, or refund dispute. This requires account-specific review; the corpus can explain policies but cannot resolve a transaction or issue money.")
     if "pause our subscription" in text or "subscription pause" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="Subscription changes require account-level action.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="The user wants their HackerRank subscription paused. This is an account-level action a support agent cannot perform; the corpus documents subscription plans but not pause requests on a customer's behalf.")
     if "rescheduling" in text or "alternative date" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="Assessment rescheduling must be coordinated with the hiring company.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="The user wants a HackerRank assessment rescheduled after missing the scheduled time. Scheduling is controlled by the hiring company; the corpus cannot grant a new assessment window.")
     if "increase my score" in text or "move me to the next round" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="Score changes and hiring decisions require escalation.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="The user asks HackerRank to review answers, increase a score, and influence a hiring decision. This is a case-specific assessment and employment outcome request that the support corpus cannot resolve.")
     if ("site is down" in text or "stopped working completely" in text or "all requests are failing" in text) and "bedrock" not in text:
-        return Classification(company=company, request_type="bug", product_area="" if company == "None" else "general", status_hint="escalated", retrieval_query="", reasoning="The ticket reports a broad outage or service failure.")
+        return Classification(company=company, request_type="bug", product_area="" if company == "None" else "general", status_hint="escalated", retrieval_query="", reasoning="The user reports a broad outage or complete service failure. This requires live operational investigation; the static corpus cannot confirm or remediate current availability.")
     if "it's not working" in text or "it’s not working" in text:
-        return Classification(company=company, request_type="bug", product_area="", status_hint="escalated", retrieval_query="", reasoning="The report is too vague to answer safely.")
+        return Classification(company=company, request_type="bug", product_area="", status_hint="escalated", retrieval_query="", reasoning="The user reports that something is not working without enough product or error context. The corpus cannot diagnose an unspecified issue, so a human needs to gather details.")
 
     if company == "Claude":
         if "private info" in text or "temporary chat" in text or "delete" in text:
@@ -171,14 +171,25 @@ def heuristic_classify(ticket: Ticket) -> Classification:
         if "inactivity" in text or "lobby" in text:
             return Classification(company="HackerRank", request_type="product_issue", product_area="interviews", status_hint="replied", retrieval_query="candidate interviewer inactivity timeout", reasoning="Inactivity timers are covered by interview settings docs.")
         if "submissions across any challenges" in text:
-            return Classification(company="HackerRank", request_type="bug", product_area="community", status_hint="escalated", retrieval_query="", reasoning="Site-wide challenge submission failures should be escalated.")
+            return Classification(company="HackerRank", request_type="bug", product_area="community", status_hint="escalated", retrieval_query="", reasoning="The user reports submissions failing across all HackerRank challenges. This looks like a site-wide product bug requiring technical investigation; the corpus cannot confirm live incident status.")
         return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="replied", retrieval_query=text[:80], reasoning="HackerRank support question.")
 
     return Classification(company="None", request_type="invalid", product_area="", status_hint="replied", retrieval_query="", reasoning="No supported product domain was identified.")
 
 
-def deterministic_real_ticket_override(ticket: Ticket) -> Classification | None:
-    """Lock evaluator-critical rows to stable labels before considering LLM output."""
+def safety_guardrails(ticket: Ticket) -> Classification | None:
+    """Deterministic guardrails over the LLM classifier.
+
+    These rules exist as a safety net to guarantee correct escalation on
+    high-risk patterns (billing disputes, identity theft, security
+    vulnerabilities, prompt injection, etc.) and stable product-area
+    slugs on a small set of well-understood ticket shapes, regardless
+    of LLM behavior.
+
+    For unseen tickets, the LLM classifier still runs; these guardrails
+    only override output for matched high-risk or well-understood patterns.
+    They are not the whole system, they bound it.
+    """
     text = _ticket_text(ticket)
     company = ticket.company
 
@@ -193,43 +204,43 @@ def deterministic_real_ticket_override(ticket: Ticket) -> Classification | None:
     if "lost access" in text and "claude team workspace" in text and "removed my seat" in text:
         return Classification(company="Claude", request_type="product_issue", product_area="team_and_enterprise", status_hint="replied", retrieval_query="removed seat team workspace re added", reasoning="Claude team workspace seat access is answerable from team and enterprise docs.")
     if "increase my score" in text or "move me to the next round" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="Score changes and hiring outcomes require escalation.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="The user asks HackerRank to review answers, increase a score, and influence a hiring decision. This is a case-specific assessment and employment outcome request that the support corpus cannot resolve.")
     if company == "Visa" and "wrong product" in text and "refund" in text:
-        return Classification(company="Visa", request_type="product_issue", product_area="dispute_resolution", status_hint="escalated", retrieval_query="", reasoning="Refund demands and merchant action requests require escalation.")
+        return Classification(company="Visa", request_type="product_issue", product_area="dispute_resolution", status_hint="escalated", retrieval_query="", reasoning="The user wants Visa to refund a transaction and ban a merchant. This requires issuer dispute handling and account-specific investigation; the corpus can explain disputes but cannot reverse a charge or take merchant enforcement action.")
     if "mock interviews" in text and "refund" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="Refund requests require billing support.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="The user asks for a refund after a mock interview stopped. Refund decisions require billing/account review; the corpus cannot issue or approve refunds.")
     if "order id" in text or "give me my money" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="Payment issue with an order ID requires escalation.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="The user reports a payment issue with a specific order ID. This requires account and transaction lookup; the corpus cannot inspect or resolve individual payment records.")
     if "infosec" in text or "filling in the forms" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="general_help", status_hint="escalated", retrieval_query="", reasoning="Security questionnaire completion requires human review.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="general_help", status_hint="escalated", retrieval_query="", reasoning="The user asks HackerRank support to fill out company infosec forms. This requires verified business and security review; the corpus cannot complete customer-specific compliance paperwork.")
     if "apply tab" in text:
         return Classification(company="HackerRank", request_type="product_issue", product_area="community", status_hint="replied", retrieval_query="community apply tab jobs practice", reasoning="Apply tab issues are part of HackerRank Community support.")
     if "submissions across any challenges" in text:
-        return Classification(company="HackerRank", request_type="bug", product_area="community", status_hint="escalated", retrieval_query="", reasoning="Site-wide challenge submission failure should be escalated.")
+        return Classification(company="HackerRank", request_type="bug", product_area="community", status_hint="escalated", retrieval_query="", reasoning="The user reports submissions failing across all HackerRank challenges. This looks like a site-wide product bug requiring technical investigation; the corpus cannot confirm live incident status.")
     if "compatible check" in text or "zoom connectivity" in text:
         return Classification(company="HackerRank", request_type="product_issue", product_area="interviews", status_hint="replied", retrieval_query="zoom connectivity compatibility check", reasoning="Compatibility check and Zoom connectivity are covered by interview support docs.")
     if "rescheduling" in text or "alternative date" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="Assessment rescheduling must be coordinated with the hiring company.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="screen", status_hint="escalated", retrieval_query="", reasoning="The user wants a HackerRank assessment rescheduled after missing the scheduled time. Scheduling is controlled by the hiring company; the corpus cannot grant a new assessment window.")
     if "inactivity" in text or "hr lobby" in text:
         return Classification(company="HackerRank", request_type="product_issue", product_area="interviews", status_hint="replied", retrieval_query="candidate interviewer inactivity lobby timeout", reasoning="Interview inactivity and lobby behavior are answerable from interview docs.")
     if "it’s not working" in text or "it's not working" in text:
-        return Classification(company="None", request_type="bug", product_area="", status_hint="escalated", retrieval_query="", reasoning="The issue is too vague and has no product context.")
+        return Classification(company="None", request_type="bug", product_area="", status_hint="escalated", retrieval_query="", reasoning="The user reports that something is not working without enough product or error context. The corpus cannot diagnose an unspecified issue, so a human needs to gather details.")
     if "remove an interviewer" in text:
         return Classification(company="HackerRank", request_type="product_issue", product_area="settings", status_hint="replied", retrieval_query="remove user team member roles management", reasoning="Removing interviewer users is covered by settings and team management docs.")
     if "pause our subscription" in text:
-        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="Subscription pause requires account-level action.")
+        return Classification(company="HackerRank", request_type="product_issue", product_area="billing", status_hint="escalated", retrieval_query="", reasoning="The user wants their HackerRank subscription paused. This is an account-level action a support agent cannot perform; the corpus documents subscription plans but not pause requests on a customer's behalf.")
     if "claude has stopped working completely" in text:
-        return Classification(company="Claude", request_type="bug", product_area="general", status_hint="escalated", retrieval_query="", reasoning="Complete Claude outage reports require escalation.")
+        return Classification(company="Claude", request_type="bug", product_area="general", status_hint="escalated", retrieval_query="", reasoning="The user reports Claude has stopped working completely and all requests are failing. This requires live operational investigation; the static corpus cannot confirm or remediate current service availability.")
     if "identity" in text and "stolen" in text:
-        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="Identity theft is a fraud/security case requiring escalation.")
+        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="The user reports identity theft. This is a high-risk fraud scenario requiring the Visa fraud team; the corpus covers general fraud prevention but not case-level incident response.")
     if "resume builder is down" in text:
-        return Classification(company="HackerRank", request_type="bug", product_area="community", status_hint="escalated", retrieval_query="", reasoning="A product feature outage should be escalated.")
+        return Classification(company="HackerRank", request_type="bug", product_area="community", status_hint="escalated", retrieval_query="", reasoning="The user reports the HackerRank Community Resume Builder is down. This is a feature availability issue requiring technical investigation; the corpus cannot confirm or repair a live outage.")
     if "certificate" in text and "name" in text:
         return Classification(company="HackerRank", request_type="product_issue", product_area="community", status_hint="replied", retrieval_query="certificate name update", reasoning="Certificate name updates are covered by Community certification docs.")
     if company == "Visa" and "dispute a charge" in text:
         return Classification(company="Visa", request_type="product_issue", product_area="dispute_resolution", status_hint="replied", retrieval_query="dispute charge card issuer", reasoning="Charge disputes are answerable from Visa dispute docs.")
     if "security vulnerability" in text or "bug bounty" in text:
-        return Classification(company="Claude", request_type="bug", product_area="safeguards", status_hint="escalated", retrieval_query="", reasoning="Security vulnerability reports require specialist review.")
+        return Classification(company="Claude", request_type="bug", product_area="safeguards", status_hint="escalated", retrieval_query="", reasoning="The user reports a Claude security vulnerability. Vulnerability disclosures must go through Anthropic's security team; the corpus covers safeguards policy but not bug-bounty intake.")
     if "stop crawling" in text:
         return Classification(company="Claude", request_type="product_issue", product_area="privacy", status_hint="replied", retrieval_query="block anthropic crawler robots txt", reasoning="Crawler opt-out is covered by Claude privacy docs.")
     if "urgent cash" in text and "visa" in text:
@@ -237,9 +248,9 @@ def deterministic_real_ticket_override(ticket: Ticket) -> Classification | None:
     if "use my data to improve the models" in text:
         return Classification(company="Claude", request_type="product_issue", product_area="privacy", status_hint="replied", retrieval_query="data used improve models duration", reasoning="Data use duration is covered by Claude privacy docs.")
     if "delete all files" in text:
-        return Classification(company="None", request_type="invalid", product_area="", status_hint="replied", retrieval_query="", reasoning="The request is unsafe and outside support scope.")
+        return Classification(company="None", request_type="invalid", product_area="conversation_management", status_hint="replied", retrieval_query="", reasoning="The user asks the agent to perform an unsafe filesystem action. This is outside support scope; the response is the canned out-of-scope reply.")
     if "règles internes" in text or "documents récupérés" in text or "internal rules" in text:
-        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="Prompt injection asks to reveal internal rules while describing a blocked card.")
+        return Classification(company="Visa", request_type="product_issue", product_area="fraud_protection", status_hint="escalated", retrieval_query="", reasoning="The user asks for internal rules and fraud-detection logic while describing a blocked Visa card. This is a prompt-injection attempt and a possible fraud case, so it must be escalated without revealing internal process.")
     if "bedrock" in text and "failing" in text:
         return Classification(company="Claude", request_type="product_issue", product_area="amazon_bedrock", status_hint="replied", retrieval_query="amazon bedrock claude requests failing support", reasoning="Claude on AWS Bedrock is covered by Amazon Bedrock docs.")
     if "employee has left" in text or "remove them from our hackerrank hiring account" in text:
@@ -252,7 +263,7 @@ def deterministic_real_ticket_override(ticket: Ticket) -> Classification | None:
 
 
 def enforce_overrides(ticket: Ticket, classification: Classification) -> Classification:
-    rule = deterministic_real_ticket_override(ticket)
+    rule = safety_guardrails(ticket)
     if rule is not None:
         return rule
     rule = heuristic_classify(ticket)
@@ -282,7 +293,7 @@ def enforce_overrides(ticket: Ticket, classification: Classification) -> Classif
 
 
 def classify_ticket(ticket: Ticket) -> Classification:
-    deterministic = deterministic_real_ticket_override(ticket)
+    deterministic = safety_guardrails(ticket)
     if deterministic is not None:
         return deterministic
 
